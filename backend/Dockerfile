@@ -2,10 +2,15 @@ FROM tiangolo/uvicorn-gunicorn-fastapi:python3.10
 
 WORKDIR /app/
 
+# Setup pip mirrors and install pipx
+ARG RAW_HOST=https://raw.githubusercontent.com
+RUN wget $RAW_HOST/waketzheng/carstino/master/pip_conf.py && python pip_conf.py && pip install -U pip pipx
+
 # Install Poetry
-RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/opt/poetry python && \
+RUN pipx install poetry && \
     cd /usr/local/bin && \
-    ln -s /opt/poetry/bin/poetry && \
+    ([ -f ./poetry ] || ln -s /root/.local/bin/poetry) && \
+    python /app/pip_conf.py --poetry && \
     poetry config virtualenvs.create false
 
 # Copy poetry.lock* in case it doesn't exist in the repo
